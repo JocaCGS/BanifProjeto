@@ -1,0 +1,15 @@
+{
+  "extends": "@adonisjs/tsconfig/tsconfig.app.json",
+  "compilerOptions": {
+    "rootDir": "./",
+    "outDir": "./build",
+    "baseUrl": ".",
+    "paths": {
+      "#models/*": ["app/Models/*"],
+      "#utils/*": ["app/Utils/*"],
+      "@ioc:Adonis/Core/*": ["node_modules/@adonisjs/core/build/adonis-typings/*"],
+      "@ioc:Adonis/Lucid/Database": ["node_modules/@adonisjs/lucid/build/src/Database"],
+      "@ioc:Adonis/*": ["node_modules/@adonisjs/*/build/src"]
+    }
+  }
+}
