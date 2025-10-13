@@ -49,6 +49,7 @@ router.group(() => {
   router.get('/me', '#controllers/auth_controller.me').use(middleware.auth())
   router.get('/tokens', '#controllers/auth_controller.tokens').use(middleware.auth())
   router.post('/tokens', '#controllers/auth_controller.createToken').use(middleware.auth())
-  router.get('/conta', '#controllers/conta_controller.show').use(middleware.auth());
 }).prefix('/auth')
+
+router.get('/conta', '#controllers/conta_controller.show').use(middleware.auth());
 

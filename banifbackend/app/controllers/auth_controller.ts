@@ -106,6 +106,7 @@ export default class AuthController {
           id: user.id,
           fullName: user.fullName,
           email: user.email,
+          perm_id: user.perm_id,
         },
         token: {
           type: 'bearer',
@@ -147,25 +148,27 @@ export default class AuthController {
    * Obter informações do usuário autenticado
    */
   async me({ auth, response }: HttpContext) {
-    try {
-      const user = auth.getUserOrFail()
+  try {
+    // Garante que pegamos todos os dados do usuário do banco
+    const user = await User.findOrFail(auth.user!.id)
 
-      return response.ok({
-        user: {
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          perm_id: user.perm_id,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-        },
-      })
-    } catch (error) {
-      return response.unauthorized({
-        message: 'Token inválido',
-      })
-    }
+    return response.ok({
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        perm_id: user.perm_id, // agora deve ser 2 para gerente
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    })
+  } catch (error) {
+    return response.unauthorized({
+      message: 'Token inválido',
+    })
   }
+}
+
 
   /**
    * Listar todos os tokens do usuário autenticado

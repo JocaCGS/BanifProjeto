@@ -40,16 +40,26 @@ export default function FormLogin() {
         setLoad(true) 
         setTimeout(() => {
              Client.post('auth/login', user).then(res => {
-                const load = res.data
-                console.log(load)
-                // Context
-                setUser(load.user)
-                // Local Storage
-                setDataUser(load.user)
-                setToken(load.token.value)
-                setPermissions(load.permissions)
-                navigate('/home')
-            })
+            const data = res.data;
+
+            console.log('Login response:', data); // sempre veja o que vem
+
+            // Context
+            setUser(data.user);
+            setDataUser(data.user);
+            setToken(data.token.value);
+            setPermissions(data.permissions);
+
+            const permId = Number(data.user.perm_id); // pega do retorno correto
+            const routeMap = {
+                1: '/home',        
+                2: '/homegerente',
+            };
+
+            const route = routeMap[permId] || '/jmmbn';
+            navigate(route);
+        })
+
             .catch(function(error) {
                 setView(true)
                 console.log(error)

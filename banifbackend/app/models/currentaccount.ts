@@ -1,9 +1,12 @@
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import { DateTime } from 'luxon'
 
 export default class CurrentAccount extends BaseModel {
+
+  public static table = 'currentaccounts'
+
   @column({ isPrimary: true })
   declare id: number
 
@@ -27,5 +30,6 @@ export default class CurrentAccount extends BaseModel {
 
   @belongsTo(() => User, {foreignKey: 'user_id'})
   declare usuario: BelongsTo<typeof User>
+
 
 }

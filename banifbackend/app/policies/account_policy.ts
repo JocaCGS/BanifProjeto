@@ -9,6 +9,11 @@ export default class AccountPolicy extends BasePolicy {
     if (!user) return false
     return permissions[user.perm_id].listClient
   }
+  show(user: User | null): AuthorizerResponse {
+    // Se não há usuário logado, negar acesso
+    if (!user) return false
+    return permissions[user.perm_id].showClient
+  }
   view(user: User | null): AuthorizerResponse {
     // Se não há usuário logado, negar acesso
     if (!user) return false

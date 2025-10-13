@@ -16,7 +16,7 @@ export default function ContaCorrente() {
       try {
         setLoading(true)
         const response = await Client.get('/conta') // rota do backend
-        setConta(response.data) // response.data deve ser { numeroConta, numeroAgencia, saldo }
+        setConta(response.data.conta) // response.data deve ser { numeroConta, numeroAgencia, saldo }
       } catch (err) {
         console.error('Erro ao buscar dados da conta:', err)
         setError('Não foi possível carregar os dados da conta.')
@@ -47,7 +47,7 @@ export default function ContaCorrente() {
 
       <InfoBox>
         <Label>Saldo:</Label>
-        <Value>R$ {conta.saldo.toFixed(2)}</Value>
+        <Value>R$ {Number(conta.saldo).toFixed(2)}</Value>
       </InfoBox>
     </Container>
   )

@@ -1,22 +1,15 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import AccountService from '#services/account_service'
-import AccountPolicy from '#policies/account_policy'
+  import type { HttpContext } from '@adonisjs/core/http'
 
-export default class ContaController {
-  private contaService = new AccountService()
+  export default class ContaController {
 
-  async show({ params, response, auth, bouncer }: HttpContext) {
-      try {
-        if (await (bouncer as any).with(AccountPolicy).denies('show')) {
-          return response.forbidden({ message: 'Você não tem permissão para mostrar usuários' })
-        }
-  
-        const conta = await this.contaService.getAccountById(params.id)
-        await conta.load('usuario')
-  
-        return response.status(200).json({ message: 'OK', data: conta })
-      } catch (error) {
-        return response.status(500).json({ message: 'ERROR', error: error.message })
-      }
+    async show({ auth, request, response }: HttpContext) {
+    const user = auth.user
+    if (!user) {
+      return response.unauthorized({ message: 'Usuário não autenticado' })
     }
-}
+
+    const conta = await user.related('currentAccounts').query().first()
+    return response.ok({ conta })
+  }
+
+  }
