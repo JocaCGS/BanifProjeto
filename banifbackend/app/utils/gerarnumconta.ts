@@ -28,3 +28,4 @@ export function gerarNumeroConta(): string {
   // Retorna no formato padrão de conta
   return `${numero}-${digito}`
 }
+

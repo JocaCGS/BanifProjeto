@@ -14,10 +14,8 @@ export default class AuthController {
   async register({ request, response }: HttpContext) {
   try {
     // Validar payload do usuário, incluindo o address
-    const payload = await request.validateUsing(registerValidator)
-
-    // Criar endereço no banco
-    const address = await Address.create(payload.address)
+    const payload = await request.validateUsing(registerValidator)  
+ 
 
     // Criar usuário, vinculando o address_id
     const user = await User.create({
@@ -25,8 +23,8 @@ export default class AuthController {
       email: payload.email,
       password: payload.password,
       cpf: payload.cpf,
-      perm_id: 0, // ou outro papel padrão
-      address_id: address.id, // vincula endereço criado
+      perm_id: 1, // ou outro papel padrão
+      address_id: payload.address, // vincula endereço criado
     })
 
     const conta_corrente = await CurrentAccount.create({
@@ -45,18 +43,90 @@ export default class AuthController {
     return response.created({
       message: 'Usuário registrado com sucesso',
       user: {
-        id: user.id,
         fullName: user.fullName,
         email: user.email,
         perm_id: user.perm_id,
         cpf: user.cpf,
-        address: {
-          id: address.id,
-          cidade: address.cidade,
-          estado: address.estado,
-          rua: address.rua,
-          numero_casa: address.numero_casa,
+        address: payload.address,
+        conta_corrente: {
+          numero_conta: conta_corrente.numero_conta,
+          numero_agencia: conta_corrente.numero_agencia,
+          saldo: conta_corrente.saldo
         },
+        createdAt: user.createdAt,
+      },
+      token: {
+        type: 'bearer',
+        value: token.value!.release(),
+        expiresAt: token.expiresAt,
+      },
+      permissions: { ...permissions[user.perm_id] },
+    })
+  } catch (error) {
+    return response.badRequest({
+      message: 'Erro ao registrar usuário',
+      errors: error.messages || error.message,
+    })
+  }
+}
+
+async registeraddress({ request, response }: HttpContext) {
+  try {
+        const { cidade, estado, rua, numero_casa } = request.only(['cidade', 'estado', 'rua', 'numero_casa']);
+
+        // Criação do endereço no banco
+        const address = await Address.create({ cidade, estado, rua, numero_casa });
+
+        return response.status(201).json({ id: address.id });
+    } catch (error) {
+        const { cidade, estado, rua, numero_casa } = request.only(['cidade', 'estado', 'rua', 'numero_casa']);
+        return response.status(500).json({ message: `Erro ao criar endereço ${numero_casa}`, error: error.message });
+    }
+}
+
+async accountregister({ request, response }: HttpContext) {
+
+
+  // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
+  // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
+  // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
+
+  try {
+    // Validar payload do usuário, incluindo o address
+    const payload = await request.validateUsing(registerValidator)  
+ 
+
+    // Criar usuário, vinculando o address_id
+    const user = await User.create({
+      fullName: payload.fullName,
+      email: payload.email,
+      password: payload.password,
+      cpf: payload.cpf,
+      perm_id: 1, // ou outro papel padrão
+      address_id: payload.address, // vincula endereço criado
+    })
+
+    const conta_corrente = await CurrentAccount.create({
+      user_id: user.id,
+      numero_conta: gerarNumeroConta(),
+      numero_agencia: '0001',
+      saldo: 0
+    })
+
+    // Criar token de acesso
+    const token = await User.accessTokens.create(user, ['*'], {
+      name: 'Registration Token',
+      expiresIn: '30 days',
+    })
+
+    return response.created({
+      message: 'Usuário registrado com sucesso',
+      user: {
+        fullName: user.fullName,
+        email: user.email,
+        perm_id: user.perm_id,
+        cpf: user.cpf,
+        address: payload.address,
         conta_corrente: {
           numero_conta: conta_corrente.numero_conta,
           numero_agencia: conta_corrente.numero_agencia,
@@ -90,7 +160,7 @@ export default class AuthController {
 
       logger.info(`${email} - ${password}`) // <-- tirar do log depois a senha
 
-      const user = await User.verifyCredentials(email, password)
+      const user = await User.verifyPassword(email, password)
 
 
       // Criar token de acesso

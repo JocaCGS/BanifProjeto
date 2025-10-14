@@ -23,12 +23,7 @@ export const registerValidator = vine.compile(
         return !user
       }),
 
-    address: vine.object({
-      cidade: vine.string().minLength(2),
-      estado: vine.string().minLength(2),
-      rua: vine.string().minLength(2),
-      numero_casa: vine.string().minLength(1),
-    })
+    address: vine.number()
   })
 )
 

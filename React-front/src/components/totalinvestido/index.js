@@ -4,14 +4,14 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 
 export default function TotalInvestido() {
   const dadosInvestimentos = [
-    { tipo: "Poupança", total: 5000, rendimento: 120 },
-    { tipo: "Investimento", total: 10000, rendimento: 450 },
-    { tipo: "Renda Fixa", total: 8000, rendimento: 300 },
+    { tipo: "Poupança", total: 0},
+    { tipo: "Investimento", total: 0},
+    { tipo: "Renda Fixa", total: 0},
   ];
 
   return (
     <Container>
-      <Title>Total Investido e Rendimentos</Title>
+      <Title>Total Investido</Title>
       <ChartWrapper>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -24,7 +24,6 @@ export default function TotalInvestido() {
             <Tooltip formatter={(value) => `R$ ${value.toLocaleString()}`} />
             <Legend wrapperStyle={{ color: '#fff', fontSize: 16 }} />
             <Bar dataKey="total" name="Total Investido" fill="#ffc400" barSize={80} />
-            <Bar dataKey="rendimento" name="Rendimento" fill="#ff9800" barSize={80} />
           </BarChart>
         </ResponsiveContainer>
       </ChartWrapper>

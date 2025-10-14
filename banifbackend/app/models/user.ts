@@ -1,21 +1,14 @@
 import { DateTime } from 'luxon'
-import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, belongsTo, beforeSave, hasMany } from '@adonisjs/lucid/orm'
-import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 
 import Perm from '#models/perm'
 import Address from '#models/address'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
-import hash from '@adonisjs/core/services/hash'
 import CurrentAccount from './currentaccount.js'
 
-const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
-  uids: ['email'],
-  passwordColumnName: 'password',
-})
 
-export default class User extends compose(BaseModel, AuthFinder) {
+export default class User extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
@@ -47,10 +40,19 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
 
   // verifica senha
-  public async verifyPassword(plainPassword: string) {
-  return this.password.trim() === plainPassword.trim()
-  }
+  static async verifyPassword(email: string, plainPassword: string) {
+    const user = await User.query().where('email', email).first()
 
+    if (!user) {
+      throw new Error('Usuário não encontrado')
+    }
+
+    if (user.password.trim() !== plainPassword.trim()) {
+      throw new Error('Senha incorreta')
+    }
+
+    return user
+  }
     
 
   public async checkPassword(){

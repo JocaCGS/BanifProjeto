@@ -36,7 +36,7 @@ export default function FormCadastro() {
     const [cidade, setCidade] = useState('');
     const [estado, setEstado] = useState('');
     const [rua, setRua] = useState('');
-    const [numero, setNumero] = useState('');
+    const [numero_casa, setNumero] = useState('');
     const [load, setLoad] = useState(false);
     const [view, setView] = useState(false);
     const navigate = useNavigate();
@@ -44,15 +44,15 @@ export default function FormCadastro() {
 
     function Cadastrar() {
         const user = {
-            nome,
-            email,
-            password,
-            cpf,
-            endereco: {
+            fullName: nome,
+            email: email,
+            password: password,
+            cpf: cpf,
+            address: {
                 cidade,
                 estado,
                 rua,
-                numero
+                numero_casa
             }
         };
 
@@ -60,14 +60,26 @@ export default function FormCadastro() {
         setLoad(true);
 
         setTimeout(() => {
-            Client.post('auth/register', user).then(res => {
+            Client.post('auth/addressregister', user.address).then(res => {
+                const addressId = res.data.id;
+                
+                const userWithAddress = {
+                    fullName: nome,
+                    email: email,
+                    password: password,
+                    cpf: cpf,
+                    address: addressId
+                }
+                return Client.post('auth/register', userWithAddress);
+            })
+            .then((res)=> {
+                
                 const load = res.data;
                 console.log(load);
                 setUser(load.user);
                 setDataUser(load.user);
                 setToken(load.token.value);
                 setPermissions(load.permissions);
-                navigate('/cursos');
             })
             .catch(function (error) {
                 setView(true);
@@ -189,7 +201,7 @@ export default function FormCadastro() {
                                 <div>
                                     <Label>Número</Label>
                                     <InputText
-                                        value={numero}
+                                        value={numero_casa}
                                         onChange={(e) => setNumero(e.target.value)}
                                     />
                                 </div>

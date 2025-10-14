@@ -12,6 +12,7 @@ import BotaoLogout from '../../components/botaologout';
 import { OrbitProgress } from "react-loading-indicators";
 import FormCadastro from '../../components/formcadastro';
 import FormContaCorrente from '../../components/formcontacorrente';
+import ActionButtonGerente from '../../components/actionbuttongerente';
 
 export default function HomeGerente() {
     const [load, setLoad] = useState(true);
@@ -34,6 +35,8 @@ export default function HomeGerente() {
                 <HeaderWrapper>
                     <HeaderHomeGerente />
                 </HeaderWrapper>
+
+                <ActionButtonGerente />
 
                 <FormsContainer>
                     <FormWrapper>

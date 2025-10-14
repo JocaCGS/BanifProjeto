@@ -43,6 +43,7 @@ router.get('/hello', async () => {
 // Rotas de autenticação (públicas)
 router.group(() => {
   router.post('/register', '#controllers/auth_controller.register')
+  router.post('/addressregister', '#controllers/auth_controller.registeraddress')
   router.post('/login', '#controllers/auth_controller.login')
   // Rotas protegidas de autenticação
   router.post('/logout', '#controllers/auth_controller.logout').use(middleware.auth())
