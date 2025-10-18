@@ -5,50 +5,45 @@ import {
     Label, 
     InputText, 
     Submit, 
-    SendBox, 
-    LinkBack 
+    SendBox 
 } from './style';
-import iconbanco from '../../images/iconbanco.png';
-import { BoxIcon, BoxItem, Icon, Title, SubTitle } from './style';
+import { Title, SubTitle } from './style';
+import { Client } from '../../api/client';
 
 export default function FormContaCorrente() {
     const [numeroConta, setNumeroConta] = useState('');
     const [numeroAgencia, setNumeroAgencia] = useState('');
     const [saldo, setSaldo] = useState('');
     const [cpf, setCpf] = useState('');
+    const [load, setLoad] = useState(false);
+    const [view, setView] = useState(false);
     
-    function criarConta() {
-            const conta = {
-                numero_conta: numeroConta,
-                numero_agencia: numeroAgencia,
-                saldo: saldo,
-                cpf: cpf,
-            };
-            setView(false);
-            setLoad(true);
-            return Client.post('auth/accountregister', conta).then((res)=> {
-                
-                const load = res.data;
-                    console.log(load);
-                    setUser(load.user);
-                    setDataUser(load.user);
-                    setToken(load.token.value);
-                    setPermissions(load.permissions);
-                })
-                .catch(function (error) {
-                    setView(true);
-                    console.log(error);
-                })
-                .finally(() => {
-                    setLoad(false);
-                });
+    async function criarConta() {
+        const conta = {
+            numero_conta: numeroConta,
+            numero_agencia: numeroAgencia,
+            saldo,
+            cpf,
+        };
 
+        setView(false);
+        setLoad(true);
+
+        try {
+            const res = await Client.post('auth/accountregister', conta);
+            console.log('Conta criada com sucesso:', res.data);
+            alert('Conta criada com sucesso!');
+        } catch (error) {
+            setView(true);
+            console.error('Erro ao criar conta:', error);
+            alert('Erro ao criar conta. Verifique o console.');
+        } finally {
+            setLoad(false);
         }
+    }
 
     return (
         <Container>
-
-
             <Title>Conta Corrente</Title>
             <SubTitle>Preencha os dados abaixo</SubTitle>
 
@@ -65,7 +60,7 @@ export default function FormContaCorrente() {
                     onChange={(e) => setNumeroAgencia(e.target.value)}
                 />
 
-                  <Label>CPF</Label>
+                <Label>CPF</Label>
                 <InputText
                     value={cpf}
                     onChange={(e) => setCpf(e.target.value)}
@@ -78,9 +73,8 @@ export default function FormContaCorrente() {
                     onChange={(e) => setSaldo(e.target.value)}
                 />
 
-
                 <SendBox>
-                    <Submit value="Criar Conta" onClick={criarConta} />
+                    <Submit value={load ? 'Criando...' : 'Criar Conta'} onClick={criarConta} disabled={load} />
                 </SendBox>
             </FormBox>
         </Container>

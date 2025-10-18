@@ -9,7 +9,7 @@ import {
 
 export default function HeaderHome() {
   // Dados fictícios só para teste
-  const nome = "nadnanna";
+  const nome = "Gerenciar Clientes";
 
   return (
     <HeaderContainer>

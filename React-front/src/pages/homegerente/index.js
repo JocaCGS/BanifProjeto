@@ -44,10 +44,10 @@ export default function HomeGerente() {
                         <FormCadastro />
                     </FormWrapper>
 
-                    <FormWrapper>
-                        <FormTitle>Conta Corrente</FormTitle>
-                        <FormContaCorrente />
-                    </FormWrapper>
+                            {/* <FormWrapper>
+                                <FormTitle>Conta Corrente</FormTitle>
+                                <FormContaCorrente />
+                            </FormWrapper> */}
                 </FormsContainer>
 
                 <LogoutWrapper>

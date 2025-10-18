@@ -64,7 +64,7 @@ export default function TransferenciaPix({ onClose, abrirConfirmar }) {
       />
 
       {mensagem && <MsgBox>{mensagem}</MsgBox>}
-
+    
       <SendBox>
         <Submit value="Enviar Pix" onClick={handlePix} />
       </SendBox>

@@ -16,6 +16,7 @@ export default class UserController {
       }
 
       const users = await this.userService.listUsers()
+      console.log('Users retornados no controller:', users)
       return response.status(200).json({ message: 'OK', data: users })
     } catch (error) {
       return response.status(500).json({ message: 'ERROR', error: error.message })

@@ -6,9 +6,41 @@ import { gerarNumeroConta } from '../utils/gerarnumconta.js'
 
 export default class UserService {
   // Listar todos os usuários com endereço
+
+  //ta programado esperando uma conta mas tipo eu nao programei assim entao vai ser assim meesmo XDD
   public async listUsers() {
-    return User.query().preload('address')
+    // Buscar todos os usuários
+    const users = await User.query().preload('currentAccounts')
+
+     return users.map(user => {
+      return {
+        id: user.id,
+        fullName: user.fullName,
+        cpf: user.cpf,
+        saldo: user.currentAccounts[0]?.saldo || 0
+      }
+    })
   }
+
+// aqui a funcao pra caso queira mais contas rsrsrsrsr
+  // public async listUsers() {
+  //   // Buscar todos os usuários
+  //   const users = await User.query().preload('currentAccounts')
+
+  //    return users.map(user => {
+  //     const saldoTotal = user.currentAccounts.reduce(
+  //       (acc, conta) => acc + (conta.saldo || 0),
+  //       0
+  //     )
+
+  //     return {
+  //       id: user.id,
+  //       fullName: user.fullName,
+  //       cpf: user.cpf,
+  //       saldo: saldoTotal,
+  //     }
+  //   })
+  // }
 
   // Trazer todos os endereços disponíveis
   public async getAddresses() {

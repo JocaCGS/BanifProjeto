@@ -1,6 +1,6 @@
 // TransferController.ts
 import type { HttpContext } from '@adonisjs/core/http'
-import { transfer } from '#services/transfer_service' // caminho do seu service de transferência
+import { transfer } from '#services/transfer_service'
 
 export default class TransferController {
   /**
@@ -8,25 +8,28 @@ export default class TransferController {
    */
   async store({ request, auth, response }: HttpContext) {
     try {
-      // Pega os dados do body
-      const { cpf_receiver, value, password } = request.only([
-        'cpf_receiver',
+      // 1️⃣ Pega os dados do body
+      const { receiver_account, receiver_agency, value, password } = request.only([
+        'receiver_account',
+        'receiver_agency',
         'value',
         'password',
       ])
 
-      // Chama a função de transferência
+      // 2️⃣ Chama a função de transferência
       const result = await transfer({
         auth,
-        input: value,
-        cpf_receiver,
+        amount: value,
+        receiver_account,
+        receiver_agency,
         password,
       })
 
-      // Retorna resposta
+      // 3️⃣ Retorna resposta HTTP
       return response
         .status(result.status === 'success' ? 200 : 400)
         .json(result)
+
     } catch (error) {
       return response.status(500).json({
         status: 'error',

@@ -42,7 +42,7 @@ export const Celula = styled.td`
 `;
 
 export const Saldo = styled.td`
-  color: ${(props) => (props.positivo ? '#37b437' : '#ff0000')};
+  color: ${({ $positivo }) => ($positivo ? '#37b437' : '#ff0000')};
   padding: 12px 5px;
 `;
 
@@ -56,8 +56,8 @@ export const PaginacaoContainer = styled.div`
 `;
 
 export const BotaoPagina = styled.button`
-  background-color: ${(props) => (props.ativo ? '#ffc400' : 'transparent')};
-  color: ${(props) => (props.ativo ? '#000' : '#ffc400')};
+  background-color: ${({ $ativo }) => ($ativo ? '#ffc400' : 'transparent')};
+  color: ${({ $ativo }) => ($ativo ? '#000' : '#ffc400')};
   border: 1px solid #ffc400;
   border-radius: 5px;
   padding: 6px 12px;

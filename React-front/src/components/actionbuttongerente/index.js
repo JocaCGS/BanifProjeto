@@ -36,7 +36,7 @@ export default function ActionButtonGerente() {
   return (
     <>
       <ButtonContainer>
-        <ActionButton onClick={() => abrirModal('pix')}>Área Pix e Transferir</ActionButton>
+        {/* <ActionButton onClick={() => abrirModal('pix')}>Área Pix e Transferir</ActionButton> */}
         <ActionButton onClick={() => abrirModal('listacliente')}>Lista de Clientes</ActionButton>
     
       </ButtonContainer>

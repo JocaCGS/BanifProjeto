@@ -1,48 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Client } from '../../api/client';
+
 import {
   ExtratoContainer,
   ExtratoTitle,
-  MovimentacoesList,
-  MovimentacaoItem,
-  TipoMovimentacao,
-  ValorMovimentacao,
-  DataMovimentacao,
   PaginacaoContainer,
   BotaoPagina,
 } from './style';
 
 export default function ExtratoMovimentacoes() {
-  const movimentacoes = [
-    { tipo: 'Depósito', valor: 500.0, positivo: true, data: '2025-10-01' },
-    { tipo: 'Pix Enviado', valor: 200.0, positivo: false, data: '2025-10-02' },
-    { tipo: 'Saque', valor: 100.0, positivo: false, data: '2025-10-03' },
-    { tipo: 'Depósito', valor: 300.0, positivo: true, data: '2025-10-04' },
-    { tipo: 'Pix Recebido', valor: 150.0, positivo: true, data: '2025-10-05' },
-    { tipo: 'Depósito', valor: 700.0, positivo: true, data: '2025-10-06' },
-    { tipo: 'Pix Enviado', valor: 50.0, positivo: false, data: '2025-10-07' },
-    { tipo: 'Saque', valor: 30.0, positivo: false, data: '2025-10-08' },
-    { tipo: 'Depósito', valor: 400.0, positivo: true, data: '2025-10-09' },
-    { tipo: 'Pix Recebido', valor: 250.0, positivo: true, data: '2025-10-10' },
-    { tipo: 'Saque', valor: 80.0, positivo: false, data: '2025-10-11' },
-    { tipo: 'Depósito', valor: 600.0, positivo: true, data: '2025-10-12' },
-    { tipo: 'Depósito', valor: 500.0, positivo: true, data: '2025-10-13' },
-    { tipo: 'Pix Enviado', valor: 200.0, positivo: false, data: '2025-10-14' },
-    { tipo: 'Saque', valor: 100.0, positivo: false, data: '2025-10-15' },
-    { tipo: 'Depósito', valor: 300.0, positivo: true, data: '2025-10-16' },
-    { tipo: 'Pix Recebido', valor: 150.0, positivo: true, data: '2025-10-17' },
-    { tipo: 'Depósito', valor: 700.0, positivo: true, data: '2025-10-18' },
-    { tipo: 'Pix Enviado', valor: 50.0, positivo: false, data: '2025-10-19' },
-    { tipo: 'Saque', valor: 30.0, positivo: false, data: '2025-10-20' },
-    { tipo: 'Depósito', valor: 400.0, positivo: true, data: '2025-10-21' },
-    { tipo: 'Pix Recebido', valor: 250.0, positivo: true, data: '2025-10-22' },
-    { tipo: 'Saque', valor: 80.0, positivo: false, data: '2025-10-23' },
-    { tipo: 'Depósito', valor: 600.0, positivo: true, data: '2025-10-24' },
-  ];
-
-  const itensPorPagina = 8;
+  const [movimentacoes, setMovimentacoes] = useState([]);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const totalPaginas = Math.ceil(movimentacoes.length / itensPorPagina);
+  const itensPorPagina = 8;
 
+  // Pegando usuário logado do localStorage/context (supondo que você salva)
+  const userLogado = JSON.parse(localStorage.getItem('user') || '{}');
+  const userCpf = userLogado.cpf;
+
+  useEffect(() => {
+    async function fetchMovimentacoes() {
+      try {
+        const response = await Client.get('/auth/showstatement');
+        const dados = response.data.data || [];
+
+        const movimentacoesFormatadas = dados.map((mov) => {
+          const positivo = mov.receiverCpf === userCpf;
+          const tipo = positivo ? 'Entrada' : 'Saída';
+
+          const dataObj = new Date(mov.createdAt);
+          const data = `${dataObj.getDate().toString().padStart(2, '0')}/${
+            (dataObj.getMonth() + 1).toString().padStart(2, '0')}/${
+            dataObj.getFullYear()
+          } ${dataObj.getHours().toString().padStart(2, '0')}:${dataObj.getMinutes().toString().padStart(2, '0')}`;
+
+          return { ...mov, positivo, tipo, data };
+        });
+
+        setMovimentacoes(movimentacoesFormatadas);
+      } catch (error) {
+        console.error('Erro ao carregar movimentações:', error);
+      }
+    }
+
+    fetchMovimentacoes();
+  }, [userCpf]);
+
+  // Paginação
+  const totalPaginas = Math.ceil(movimentacoes.length / itensPorPagina);
   const indiceUltimoItem = paginaAtual * itensPorPagina;
   const indicePrimeiroItem = indiceUltimoItem - itensPorPagina;
   const movimentacoesPagina = movimentacoes.slice(indicePrimeiroItem, indiceUltimoItem);
@@ -52,25 +56,13 @@ export default function ExtratoMovimentacoes() {
     const delta = 1;
 
     paginas.push(1);
-
     let esquerda = Math.max(2, paginaAtual - delta);
     let direita = Math.min(totalPaginas - 1, paginaAtual + delta);
 
-    if (esquerda > 2) {
-      paginas.push('...');
-    }
-
-    for (let i = esquerda; i <= direita; i++) {
-      paginas.push(i);
-    }
-
-    if (direita < totalPaginas - 1) {
-      paginas.push('...');
-    }
-
-    if (totalPaginas > 1) {
-      paginas.push(totalPaginas);
-    }
+    if (esquerda > 2) paginas.push('...');
+    for (let i = esquerda; i <= direita; i++) paginas.push(i);
+    if (direita < totalPaginas - 1) paginas.push('...');
+    if (totalPaginas > 1) paginas.push(totalPaginas);
 
     return paginas.map((p, i) =>
       p === '...' ? (
@@ -92,17 +84,34 @@ export default function ExtratoMovimentacoes() {
   return (
     <ExtratoContainer>
       <ExtratoTitle>Extrato de Movimentações</ExtratoTitle>
-      <MovimentacoesList>
-        {movimentacoesPagina.map((mov, index) => (
-          <MovimentacaoItem key={index}>
-            <DataMovimentacao>{mov.data}</DataMovimentacao>
-            <TipoMovimentacao>{mov.tipo}</TipoMovimentacao>
-            <ValorMovimentacao positivo={mov.positivo}>
-              {mov.positivo ? '+' : '-'} R$ {mov.valor.toFixed(2)}
-            </ValorMovimentacao>
-          </MovimentacaoItem>
-        ))}
-      </MovimentacoesList>
+
+      <table style={{ width: '100%', borderCollapse: 'collapse', color: '#fff' }}>
+        <thead>
+          <tr style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>
+            <th style={{ padding: '8px' }}>Data</th>
+            <th style={{ padding: '8px' }}>Tipo</th>
+            <th style={{ padding: '8px', textAlign: 'right' }}>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {movimentacoesPagina.map((mov, index) => (
+            <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
+              <td style={{ padding: '8px', color: '#fff' }}>{mov.data}</td>
+              <td style={{ padding: '8px', color: '#fff' }}>{mov.tipo}</td>
+              <td
+                style={{
+                  padding: '8px',
+                  textAlign: 'right',
+                  color: mov.positivo ? 'green' : 'red',
+                  fontWeight: 'bold',
+                }}
+              >
+                {mov.positivo ? '+' : '-'} R$ {Number(mov.value ?? 0).toFixed(2)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <PaginacaoContainer>
         <BotaoPagina

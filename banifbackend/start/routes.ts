@@ -44,6 +44,12 @@ router.get('/hello', async () => {
 router.group(() => {
   router.post('/register', '#controllers/auth_controller.register')
   router.post('/addressregister', '#controllers/auth_controller.registeraddress')
+  router.post('/accountregister', '#controllers/auth_controller.accountregister')
+  router.post('/transfer', '#controllers/transferencia_controller.store').use(middleware.auth())
+  router.get('/list', '#controllers/user_controller.index').use(middleware.auth())
+  router.get('/liststatement', '#controllers/statement_controller.index').use(middleware.auth())
+  router.get('/showstatement', '#controllers/statement_controller.show').use(middleware.auth())
+
   router.post('/login', '#controllers/auth_controller.login')
   // Rotas protegidas de autenticação
   router.post('/logout', '#controllers/auth_controller.logout').use(middleware.auth())

@@ -1,67 +1,81 @@
+// transfer_service.ts
 import User from '#models/user'
 import CurrentAccount from '#models/currentaccount'
 import Statement from '#models/statement'
+import { verifyPassword } from '../utils/auth_utils.js'
 
 interface TransferParams {
-  auth: any     // tipagem genérica, porque IOC não está funcionando
-  input: number
-  cpf_receiver: string
+  auth: any
+  amount: number
+  receiver_account: string
+  receiver_agency: string
   password: string
 }
 
+export async function transfer({ auth, amount, receiver_account, receiver_agency, password }: TransferParams) {
+  // 1️⃣ Usuário autenticado (remetente)
+  const sender = await auth.getUserOrFail()
 
-export async function transfer({ auth, input, cpf_receiver, password }: TransferParams) {
-  // Usuário autenticado
-  const sender = auth.getUserOrFail()
-
-  // Verificar senha do remetente
-  const isPasswordValid = await sender.verifyPassword(password)
+  // 2️⃣ Verificar senha
+  const isPasswordValid = await verifyPassword(sender, password)
   if (!isPasswordValid) {
     return { status: 'error', message: 'Credenciais incorretas.' }
   }
 
-  // Obter contas
-  const senderAccount = await CurrentAccount.query().where('usuario_id', sender.id).first()
+  // 3️⃣ Conta do remetente
+  const senderAccount = await CurrentAccount.query().where('user_id', sender.id).first()
   if (!senderAccount) return { status: 'error', message: 'Conta remetente não encontrada.' }
 
-  const receiverUser = await User.query().where('cpf', cpf_receiver).first()
-  if (!receiverUser) return { status: 'error', message: 'Destinatário inexistente.' }
-
-  const receiverAccount = await CurrentAccount.query().where('usuario_id', receiverUser.id).first()
+  // 4️⃣ Conta do destinatário
+  const receiverAccount = await CurrentAccount.query()
+    .where('numero_conta', receiver_account)
+    .andWhere('numero_agencia', receiver_agency)
+    .first()
   if (!receiverAccount) return { status: 'error', message: 'Conta destinatário não encontrada.' }
 
-  // 4️⃣ Verificar saldo
-  if (senderAccount.saldo < input) {
-    return { status: 'error', message: 'Saldo insuficiente.' }
+  // 5️⃣ Usuário do destinatário para pegar CPF
+  const receiverUser = await User.query().where('id', receiverAccount.user_id).first()
+  if (!receiverUser) return { status: 'error', message: 'Usuário destinatário não encontrado.' }
+
+  // 6️⃣ Verificar saldo do remetente
+  const senderSaldo = Number(senderAccount.saldo)
+  const valor = Number(amount)
+
+  if (senderSaldo < valor) {
+    return { status: 'error', message: `Saldo insuficiente. Saldo: ${senderSaldo}, Valor: ${valor}` }
   }
-  // Guardar valores antigos
+
+
+  // Guardar saldos antigos para rollback
   const oldSenderSaldo = senderAccount.saldo
   const oldReceiverSaldo = receiverAccount.saldo
 
-  // 5️⃣ Atualizar saldos e criar extrato com rollback manual
+  // 7️⃣ Atualizar saldos e criar extrato
   try {
+    const senderSaldo = Number(senderAccount.saldo)
+    const receiverSaldo = Number(receiverAccount.saldo)
+    const valor = Number(amount)
 
     // Atualizar saldos
-    senderAccount.saldo -= input
-    receiverAccount.saldo += input
+    senderAccount.saldo = senderSaldo - valor
+    receiverAccount.saldo = receiverSaldo + valor
+
 
     await senderAccount.save()
     await receiverAccount.save()
 
-    // Criar extrato
     await Statement.create({
-      senderName: sender.fullName,
-      receiverName: receiverUser.fullName,
+      senderName: sender.fullName || 'Remetente',
+      receiverName: receiverUser.fullName || 'Destinatário',
       senderCpf: sender.cpf,
       receiverCpf: receiverUser.cpf,
-      value: input,
+      value: amount,
     })
 
   } catch (error) {
-    // Se algo falhar, reverte os saldos
+    // Rollback manual
     senderAccount.saldo = oldSenderSaldo
     receiverAccount.saldo = oldReceiverSaldo
-
     await senderAccount.save()
     await receiverAccount.save()
 

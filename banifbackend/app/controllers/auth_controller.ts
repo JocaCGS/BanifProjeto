@@ -84,72 +84,67 @@ async registeraddress({ request, response }: HttpContext) {
     }
 }
 
+
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+
+
 async accountregister({ request, response }: HttpContext) {
-
-
-  // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
-  // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
-  // TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO// TODO
-
   try {
-    // Validar payload do usuário, incluindo o address
-    const payload = await request.validateUsing(registerValidator)  
- 
+    const { numero_conta, numero_agencia, saldo, cpf } = request.only([
+      'numero_conta',
+      'numero_agencia',
+      'saldo',
+      'cpf',
+    ])
 
-    // Criar usuário, vinculando o address_id
-    const user = await User.create({
-      fullName: payload.fullName,
-      email: payload.email,
-      password: payload.password,
-      cpf: payload.cpf,
-      perm_id: 1, // ou outro papel padrão
-      address_id: payload.address, // vincula endereço criado
+    // Busca o usuário pelo CPF e pega só o id
+    const user = await User.query().where('cpf', cpf).select('id').first()
+
+    if (!user) {
+      return response.status(404).json({ message: 'Usuário não encontrado.' })
+    }
+
+    // Usa o id do usuário
+    const account = await CurrentAccount.create({
+      numero_conta,
+      numero_agencia,
+      saldo,
+      user_id: user.id, // <-- campo correto do relacionamento
     })
 
-    const conta_corrente = await CurrentAccount.create({
-      user_id: user.id,
-      numero_conta: gerarNumeroConta(),
-      numero_agencia: '0001',
-      saldo: 0
-    })
-
-    // Criar token de acesso
-    const token = await User.accessTokens.create(user, ['*'], {
-      name: 'Registration Token',
-      expiresIn: '30 days',
-    })
-
-    return response.created({
-      message: 'Usuário registrado com sucesso',
-      user: {
-        fullName: user.fullName,
-        email: user.email,
-        perm_id: user.perm_id,
-        cpf: user.cpf,
-        address: payload.address,
-        conta_corrente: {
-          numero_conta: conta_corrente.numero_conta,
-          numero_agencia: conta_corrente.numero_agencia,
-          saldo: conta_corrente.saldo
-        },
-        createdAt: user.createdAt,
-      },
-      token: {
-        type: 'bearer',
-        value: token.value!.release(),
-        expiresAt: token.expiresAt,
-      },
-      permissions: { ...permissions[user.perm_id] },
-    })
-  } catch (error) {
-    return response.badRequest({
-      message: 'Erro ao registrar usuário',
-      errors: error.messages || error.message,
+    return response.status(201).json({ id: account.id })
+  } catch (error) { 
+    const { numero_conta, numero_agencia, saldo, cpf } = request.only([
+      'numero_conta',
+      'numero_agencia',
+      'saldo',
+      'cpf',
+    ])
+    return response.status(500).json({
+      message: `Erro ao criar conta ${cpf} - ${numero_conta}, ${numero_agencia}, ${saldo}:`,
+      error: error.message,
     })
   }
 }
 
 
+
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+// NAO E USADO SO DEIXA AQUI CASO NECESSARIO
+
+
+
+// numero_conta: numeroConta,
+// numero_agencia: numeroAgencia,
+// saldo: saldo,
+// cpf: cpf,
 
   /**
    * Fazer login do usuário
