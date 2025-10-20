@@ -14,6 +14,8 @@ export default class CreateStatementsTable extends BaseSchema {
       table.string('receiver_cpf', 14).notNullable()
 
       table.decimal('value', 15, 2).notNullable()
+      
+      table.string('transaction_type').nullable() // ← nova coluna
 
       table.timestamp('created_at', { useTz: true }).defaultTo(this.now())
       table.timestamp('updated_at', { useTz: true }).defaultTo(this.now())
