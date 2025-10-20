@@ -12,8 +12,8 @@ import AplicacaoFinanceira from '../aplicacaofinanceira';
 import ExtratoMovimentacoes from '../extratomovimentacoes';
 import Confirmar from '../confirmar';
 
-export default function ActionButtons() {
-  const [modalAberto, setModalAberto] = useState(null); // "pix", "aplicacao", "extrato", "confirmar"
+export default function ActionButtons({ onReload }) {
+  const [modalAberto, setModalAberto] = useState(null);
   const [dadosOperacao, setDadosOperacao] = useState(null);
 
   const abrirModal = (tipo) => setModalAberto(tipo);
@@ -28,8 +28,9 @@ export default function ActionButtons() {
     console.log("✅ Senha confirmada:", senha);
     console.log("💸 Dados da operação:", dadosOperacao);
 
-    let tipoOperacao = dadosOperacao.tipo ? "Aplicação" : "Pix";
-    alert(`${tipoOperacao} de R$${parseFloat(dadosOperacao.valor).toFixed(2)} confirmado com sucesso!`);
+    // Aqui você pode chamar a API ou serviço
+    // Após operação bem-sucedida:
+    if(onReload) onReload(); // 🔹 recarrega o extrato automaticamente
 
     setModalAberto(null);
   };
@@ -48,18 +49,23 @@ export default function ActionButtons() {
             <CloseButton onClick={fecharModal}>✖</CloseButton>
 
             {modalAberto === 'pix' && (
-              <TransferenciaPix onClose={fecharModal} abrirConfirmar={abrirConfirmar} />
+              <TransferenciaPix 
+                onClose={fecharModal} 
+                abrirConfirmar={abrirConfirmar} 
+                onReload={onReload} // 🔹 passa a função pro pix
+              />
             )}
 
             {modalAberto === 'aplicacao' && (
               <AplicacaoFinanceira 
                 onClose={fecharModal} 
                 abrirConfirmar={abrirConfirmar} 
+                onReload={onReload} // 🔹 passa a função pra aplicação
               />
             )}
 
             {modalAberto === 'extrato' && (
-              <ExtratoMovimentacoes onClose={fecharModal} />
+              <ExtratoMovimentacoes onClose={fecharModal} onReload={onReload} />
             )}
 
             {modalAberto === 'confirmar' && (

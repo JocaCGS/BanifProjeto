@@ -1,4 +1,3 @@
-// statement_service.ts
 import Statement from '#models/statement'
 
 export default class StatementService {

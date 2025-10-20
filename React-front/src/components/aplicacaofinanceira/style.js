@@ -100,3 +100,7 @@ export const MsgBox = styled.div`
   color: #ff4d4d;
   font-weight: 600;
 `;
+
+export const InputPassword = styled.input.attrs({ type: 'password' })`
+  ${inputBase}
+`;

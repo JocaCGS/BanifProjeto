@@ -1,13 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Title, ChartWrapper } from './style';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Client } from '../../api/client';
 
-export default function TotalInvestido() {
-  const dadosInvestimentos = [
-    { tipo: "Poupança", total: 0},
-    { tipo: "Investimento", total: 0},
-    { tipo: "Renda Fixa", total: 0},
-  ];
+export default function TotalInvestido({reload}) {
+  const [dadosInvestimentos, setDadosInvestimentos] = useState([{ tipo: "Investimento", total: 0 }]);
+
+  useEffect(() => {
+    const fetchInvestments = async () => {
+      try {
+        const response = await Client.get('/auth/investments'); // rota para pegar todos os investimentos
+        const investments = response.data;
+
+        // soma todos os valores
+        const totalInvestido = investments.reduce((acc, inv) => acc + Number(inv.value), 0);
+
+        setDadosInvestimentos([{ tipo: "Investimento", total: totalInvestido }]);
+      } catch (error) {
+        console.error("Erro ao buscar investimentos:", error);
+      }
+    };
+
+    fetchInvestments();
+  }, [reload]);
 
   return (
     <Container>

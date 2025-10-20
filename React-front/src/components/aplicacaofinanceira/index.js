@@ -4,30 +4,46 @@ import {
   AppTitle,
   Label,
   InputNumber,
-  SelectType,
+  InputPassword,
   SendBox,
-  Submit,
-  MsgBox
+  Submit
 } from './style';
+import { Client } from '../../api/client';
 
-export default function AplicacaoFinanceira({ onClose, abrirConfirmar }) {
+export default function AplicacaoFinanceira({ onClose, reload}) {
   const [valor, setValor] = useState('');
-  const [tipo, setTipo] = useState('poupanca');
-  const [mensagem, setMensagem] = useState('');
+  const [senha, setSenha] = useState('');
 
-  const handleAplicacao = () => {
-    if (!valor || parseFloat(valor) <= 0) {
-      setMensagem('Informe um valor válido!');
+  const handleAplicacao = async () => {
+    if (!valor || parseFloat(valor) === 0) {
+      alert('Informe um valor diferente de zero!');
+      return;
+    }
+    if (!senha) {
+      alert('Informe a senha!');
       return;
     }
 
-    // Fecha o popup de aplicação e abre o Confirmar
-    if (abrirConfirmar) {
-      onClose(); // fecha popup atual
-      abrirConfirmar({
-        valor,
-        tipo
+    const valorNumerico = parseFloat(valor);
+    const rota = valorNumerico > 0 ? '/auth/invest' : '/auth/invest/withdraw';
+
+    try {
+      const response = await Client.post(rota, {
+        value: Math.abs(valorNumerico),
+        password: senha
       });
+
+      if (response.data.status === 'success') {
+        alert(valorNumerico > 0
+          ? 'Investimento realizado com sucesso!'
+          : 'Saque realizado com sucesso!');
+        onClose(); // fecha popup
+      } else {
+        alert(`Erro: ${response.data.message}`);
+      }
+    } catch (error) {
+      alert('Erro na comunicação com o servidor');
+      console.error(error);
     }
   };
 
@@ -35,24 +51,23 @@ export default function AplicacaoFinanceira({ onClose, abrirConfirmar }) {
     <AppContainer>
       <AppTitle>Aplicação Financeira</AppTitle>
 
-      <Label>Valor a Aplicar</Label>
+      <Label>Valor (negativo para saque)</Label>
       <InputNumber
         value={valor}
         onChange={(e) => setValor(e.target.value)}
         placeholder="R$ 0,00"
       />
 
-      <Label>Tipo de Aplicação</Label>
-      <SelectType value={tipo} onChange={(e) => setTipo(e.target.value)}>
-        <option value="poupanca">Poupança</option>
-        <option value="investimento">Investimento</option>
-        <option value="rendaFixa">Renda Fixa</option>
-      </SelectType>
-
-      {mensagem && <MsgBox>{mensagem}</MsgBox>}
+      <Label>Senha</Label>
+      <InputPassword
+        type="password"
+        value={senha}
+        onChange={(e) => setSenha(e.target.value)}
+        placeholder="Digite sua senha"
+      />
 
       <SendBox>
-        <Submit value="Aplicar" onClick={handleAplicacao} />
+        <Submit value="Confirmar" onClick={handleAplicacao} />
       </SendBox>
     </AppContainer>
   );

@@ -1,6 +1,7 @@
 // TransferController.ts
 import type { HttpContext } from '@adonisjs/core/http'
 import { transfer } from '#services/transfer_service'
+import { Result } from '@adonisjs/core/health'
 
 export default class TransferController {
   /**
@@ -24,6 +25,8 @@ export default class TransferController {
         receiver_agency,
         password,
       })
+
+      console.log('Resultado da transferência:', result)
 
       // 3️⃣ Retorna resposta HTTP
       return response

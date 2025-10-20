@@ -14,6 +14,9 @@ export default function HeaderHome() {
   const [saldo, setSaldo] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const userLogado = JSON.parse(localStorage.getItem('data_user') || '{}')
+  const username = userLogado.fullName
+
   useEffect(() => {
     const fetchConta = async () => {
       try {
@@ -22,7 +25,7 @@ export default function HeaderHome() {
         const response = await Client.get('/conta');
         const conta = response.data.conta;
 
-        setNome(conta.userId ? `Usuário ${conta.userId}` : "Usuário"); // se quiser, depois pega nome real do backend
+        setNome(username); // se quiser, depois pega nome real do backend
         setSaldo(Number(conta.saldo) || 0);
       } catch (err) {
         console.error("Erro ao buscar saldo:", err);

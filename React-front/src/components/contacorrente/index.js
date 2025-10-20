@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Container, Title, InfoBox, Label, Value } from './style'
 import { Client } from '../../api/client' // ajuste o caminho
 
-export default function ContaCorrente() {
+export default function ContaCorrente({reload}) {
   const [conta, setConta] = useState({
     numeroConta: '',
     numeroAgencia: '',
@@ -26,7 +26,7 @@ export default function ContaCorrente() {
     }
 
     fetchConta()
-  }, [])
+  }, [reload])
 
   if (loading) return <Container>Carregando dados da conta...</Container>
   if (error) return <Container>{error}</Container>

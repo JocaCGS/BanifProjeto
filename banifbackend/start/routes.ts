@@ -56,7 +56,12 @@ router.group(() => {
   router.get('/me', '#controllers/auth_controller.me').use(middleware.auth())
   router.get('/tokens', '#controllers/auth_controller.tokens').use(middleware.auth())
   router.post('/tokens', '#controllers/auth_controller.createToken').use(middleware.auth())
+
+  // 🔹 Rotas de investimento
+  router.post('/invest', '#controllers/investment_controller.store').use(middleware.auth())
+  router.post('/invest/withdraw', '#controllers/investment_controller.withdraw').use(middleware.auth())
+  router.get('/investments', '#controllers/investment_controller.index').use(middleware.auth())
 }).prefix('/auth')
 
-router.get('/conta', '#controllers/conta_controller.show').use(middleware.auth());
+router.get('/conta', '#controllers/conta_controller.show').use(middleware.auth())
 

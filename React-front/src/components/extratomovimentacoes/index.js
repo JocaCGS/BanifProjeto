@@ -1,74 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { Client } from '../../api/client';
-
+import React, { useState, useEffect } from 'react'
+import { Client } from '../../api/client'
 import {
   ExtratoContainer,
   ExtratoTitle,
   PaginacaoContainer,
   BotaoPagina,
-} from './style';
+} from './style'
 
-export default function ExtratoMovimentacoes() {
-  const [movimentacoes, setMovimentacoes] = useState([]);
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const itensPorPagina = 8;
+export default function ExtratoMovimentacoes({reload}) {
+  const [movimentacoes, setMovimentacoes] = useState([])
+  const [paginaAtual, setPaginaAtual] = useState(1)
+  const itensPorPagina = 8
 
-  // Pegando usuário logado do localStorage/context (supondo que você salva)
-  const userLogado = JSON.parse(localStorage.getItem('user') || '{}');
-  const userCpf = userLogado.cpf;
+  const userLogado = JSON.parse(localStorage.getItem('data_user') || '{}')
+  const userCpf = userLogado.cpf
 
   useEffect(() => {
     async function fetchMovimentacoes() {
       try {
-        const response = await Client.get('/auth/showstatement');
-        const dados = response.data.data || [];
+        const response = await Client.get('/auth/showstatement')
+        const dados = response.data.data || []
+
+        console.log('Movimentações recebidas:', dados)
+        console.log('CPF do usuário:', userCpf)
 
         const movimentacoesFormatadas = dados.map((mov) => {
-          const positivo = mov.receiverCpf === userCpf;
-          const tipo = positivo ? 'Entrada' : 'Saída';
+          const dataObj = new Date(mov.createdAt)
+          const data = isNaN(dataObj.getTime())
+            ? '-'
+            : `${dataObj.getDate().toString().padStart(2,'0')}/${
+                (dataObj.getMonth()+1).toString().padStart(2,'0')}/${
+                dataObj.getFullYear()} ${dataObj.getHours().toString().padStart(2,'0')}:${
+                dataObj.getMinutes().toString().padStart(2,'0')}`
 
-          const dataObj = new Date(mov.createdAt);
-          const data = `${dataObj.getDate().toString().padStart(2, '0')}/${
-            (dataObj.getMonth() + 1).toString().padStart(2, '0')}/${
-            dataObj.getFullYear()
-          } ${dataObj.getHours().toString().padStart(2, '0')}:${dataObj.getMinutes().toString().padStart(2, '0')}`;
+          let tipo = ''
+          let positivo = true
+          const valorAbs = Math.abs(Number(mov.value))
 
-          return { ...mov, positivo, tipo, data };
-        });
+          switch (mov.transactionType) {
+            case 'transfer':
+              if (mov.receiverCpf === userCpf) {
+                tipo = 'Transferência Recebida'
+                positivo = true
+              } else if (mov.senderCpf === userCpf) {
+                tipo = 'Transferência Enviada'
+                positivo = false
+              } else {
+                tipo = 'Transferência'
+                positivo = Number(mov.value) >= 0
+              }
+              break
+            case 'invest':
+              tipo = 'Aplicação'
+              positivo = false
+              break
+            case 'withdraw':
+              tipo = 'Saque'
+              positivo = true
+              break
+            default:
+              tipo = 'Outro'
+              positivo = Number(mov.value) >= 0
+          }
 
-        setMovimentacoes(movimentacoesFormatadas);
+          return {
+            ...mov,
+            tipo,
+            positivo,
+            data,
+            value: valorAbs,
+          }
+        })
+
+        movimentacoesFormatadas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        setMovimentacoes(movimentacoesFormatadas)
       } catch (error) {
-        console.error('Erro ao carregar movimentações:', error);
+        console.error('Erro ao carregar movimentações:', error)
       }
     }
 
-    fetchMovimentacoes();
-  }, [userCpf]);
+    fetchMovimentacoes()
+  }, [userCpf, reload])
 
-  // Paginação
-  const totalPaginas = Math.ceil(movimentacoes.length / itensPorPagina);
-  const indiceUltimoItem = paginaAtual * itensPorPagina;
-  const indicePrimeiroItem = indiceUltimoItem - itensPorPagina;
-  const movimentacoesPagina = movimentacoes.slice(indicePrimeiroItem, indiceUltimoItem);
+  const totalPaginas = Math.ceil(movimentacoes.length / itensPorPagina)
+  const indiceUltimoItem = paginaAtual * itensPorPagina
+  const indicePrimeiroItem = indiceUltimoItem - itensPorPagina
+  const movimentacoesPagina = movimentacoes.slice(indicePrimeiroItem, indiceUltimoItem)
 
   function renderizarBotoesPaginacao() {
-    const paginas = [];
-    const delta = 1;
+    const paginas = []
+    const delta = 1
 
-    paginas.push(1);
-    let esquerda = Math.max(2, paginaAtual - delta);
-    let direita = Math.min(totalPaginas - 1, paginaAtual + delta);
+    paginas.push(1)
+    let esquerda = Math.max(2, paginaAtual - delta)
+    let direita = Math.min(totalPaginas - 1, paginaAtual + delta)
 
-    if (esquerda > 2) paginas.push('...');
-    for (let i = esquerda; i <= direita; i++) paginas.push(i);
-    if (direita < totalPaginas - 1) paginas.push('...');
-    if (totalPaginas > 1) paginas.push(totalPaginas);
+    if (esquerda > 2) paginas.push('...')
+    for (let i = esquerda; i <= direita; i++) paginas.push(i)
+    if (direita < totalPaginas - 1) paginas.push('...')
+    if (totalPaginas > 1) paginas.push(totalPaginas)
 
     return paginas.map((p, i) =>
       p === '...' ? (
-        <BotaoPagina key={`dots-${i}`} disabled>
-          ...
-        </BotaoPagina>
+        <BotaoPagina key={`dots-${i}`} disabled>...</BotaoPagina>
       ) : (
         <BotaoPagina
           key={p}
@@ -78,7 +112,7 @@ export default function ExtratoMovimentacoes() {
           {p}
         </BotaoPagina>
       )
-    );
+    )
   }
 
   return (
@@ -106,7 +140,7 @@ export default function ExtratoMovimentacoes() {
                   fontWeight: 'bold',
                 }}
               >
-                {mov.positivo ? '+' : '-'} R$ {Number(mov.value ?? 0).toFixed(2)}
+                {mov.positivo ? '+' : '-'} R$ {Number(mov.value).toFixed(2)}
               </td>
             </tr>
           ))}
@@ -114,22 +148,10 @@ export default function ExtratoMovimentacoes() {
       </table>
 
       <PaginacaoContainer>
-        <BotaoPagina
-          onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
-          disabled={paginaAtual === 1}
-        >
-          ‹
-        </BotaoPagina>
-
+        <BotaoPagina onClick={() => setPaginaAtual(Math.max(paginaAtual - 1, 1))} disabled={paginaAtual === 1}>‹</BotaoPagina>
         {renderizarBotoesPaginacao()}
-
-        <BotaoPagina
-          onClick={() => setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))}
-          disabled={paginaAtual === totalPaginas}
-        >
-          ›
-        </BotaoPagina>
+        <BotaoPagina onClick={() => setPaginaAtual(Math.min(paginaAtual + 1, totalPaginas))} disabled={paginaAtual === totalPaginas}>›</BotaoPagina>
       </PaginacaoContainer>
     </ExtratoContainer>
-  );
+  )
 }

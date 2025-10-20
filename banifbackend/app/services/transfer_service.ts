@@ -60,7 +60,6 @@ export async function transfer({ auth, amount, receiver_account, receiver_agency
     senderAccount.saldo = senderSaldo - valor
     receiverAccount.saldo = receiverSaldo + valor
 
-
     await senderAccount.save()
     await receiverAccount.save()
 
@@ -70,6 +69,7 @@ export async function transfer({ auth, amount, receiver_account, receiver_agency
       senderCpf: sender.cpf,
       receiverCpf: receiverUser.cpf,
       value: amount,
+      transactionType: 'transfer', // ← aqui
     })
 
   } catch (error) {
@@ -81,6 +81,5 @@ export async function transfer({ auth, amount, receiver_account, receiver_agency
 
     return { status: 'error', message: 'Erro na transferência, saldos revertidos.' }
   }
-
   return { status: 'success', message: 'Transferência realizada com sucesso.' }
 }

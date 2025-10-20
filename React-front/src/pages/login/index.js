@@ -33,7 +33,7 @@ export default function Login() {
                     2: '/homegerente', // administrador
                 };
 
-                const route = routeMap[permId] || '/erds';
+                const route = routeMap[permId] || '/home';
                 navigate(route);
             } catch (err) {
                 console.error('Erro ao verificar autenticação:', err);

@@ -172,6 +172,7 @@ async accountregister({ request, response }: HttpContext) {
           fullName: user.fullName,
           email: user.email,
           perm_id: user.perm_id,
+          cpf: user.cpf,
         },
         token: {
           type: 'bearer',

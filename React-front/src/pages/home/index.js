@@ -8,33 +8,33 @@ import { OrbitProgress } from "react-loading-indicators";
 import ActionButtons from '../../components/actionbuttons';
 
 export default function Home() {
-    const [load, setLoad] = useState(true);
+  const [load, setLoad] = useState(true);
+  const [reload, setReload] = useState(false); // ← novo estado
 
-    // Simula carregamento inicial
-    useEffect(() => {
-        const timer = setTimeout(() => setLoad(false), 1000);
-        return () => clearTimeout(timer);
-    }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => setLoad(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
-    return (
-        load 
-        ? (
-            <Container className="d-flex justify-content-center mt-5">
-                <OrbitProgress variant="spokes" color="#FFFF00" size="medium" />
-            </Container>
-        )
-        : (
-            <Container>
-                <HeaderHome  />
-                <ActionButtons />
+  // função para forçar atualização
+  const handleReload = () => setReload(prev => !prev);
 
-              
-
-                <ContaCorrente />
-                <TotalInvestido />
-
-                <BotaoLogout />
-            </Container>
-        )
-    );
+  return (
+    load 
+    ? (
+      <Container className="d-flex justify-content-center mt-5">
+        <OrbitProgress variant="spokes" color="#FFFF00" size="medium" />
+      </Container>
+    )
+    : (
+      <Container>
+        <HeaderHome />
+        <ActionButtons onReload={handleReload} /> {/* ← passa para os botões */}
+        <ContaCorrente reload={reload} />            {/* ← passa para o saldo */}
+        <TotalInvestido reload={reload} />          {/* ← passa para investimentos */}
+        <BotaoLogout />
+      </Container>
+    )
+  );
 }
+
