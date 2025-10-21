@@ -3,21 +3,21 @@ import { Container, Title, ChartWrapper } from './style';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Client } from '../../api/client';
 
-export default function TotalInvestido({reload}) {
+export default function TotalInvestido({ reload }) {
   const [dadosInvestimentos, setDadosInvestimentos] = useState([{ tipo: "Investimento", total: 0 }]);
 
   useEffect(() => {
     const fetchInvestments = async () => {
       try {
-        const response = await Client.get('/auth/investments'); // rota para pegar todos os investimentos
-        const investments = response.data;
+        const response = await Client.get('/auth/investments'); // agora retorna só o investimento do usuário
+        const data = response.data;
 
-        // soma todos os valores
-        const totalInvestido = investments.reduce((acc, inv) => acc + Number(inv.value), 0);
+        // verifica se o backend retornou sucesso e tem valor
+        const total = data?.value ? Number(data.value) : 0;
 
-        setDadosInvestimentos([{ tipo: "Investimento", total: totalInvestido }]);
+        setDadosInvestimentos([{ tipo: "Investimento", total }]);
       } catch (error) {
-        console.error("Erro ao buscar investimentos:", error);
+        console.error("Erro ao buscar investimento:", error);
       }
     };
 
